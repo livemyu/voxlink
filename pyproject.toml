@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "voxlink"
+version = "0.1.0"
+description = "Offline-first toolkit for connecting speech encoders and discrete speech units to language models"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Huang Yu" }]
+keywords = ["speech", "llm", "discrete-units", "asr", "spoken-language-understanding"]
+
+[project.urls]
+Homepage = "https://github.com/livemyu/voxlink"
+Issues = "https://github.com/livemyu/voxlink/issues"
