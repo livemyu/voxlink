@@ -56,3 +56,23 @@ no_implicit_optional = true
 [[tool.mypy.overrides]]
 module = ["numpy.*", "torch.*"]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q"
+markers = [
+    "slow: 需要可选后端或较慢的测试",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["voxlink"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
