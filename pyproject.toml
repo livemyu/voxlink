@@ -19,6 +19,14 @@ torch = ["torch>=1.13"]
 [project.scripts]
 voxlink = "voxlink.cli:main"
 
+[dependency-groups]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.6",
+    "mypy>=1.8",
+]
+
 [project.urls]
 Homepage = "https://github.com/livemyu/voxlink"
 Issues = "https://github.com/livemyu/voxlink/issues"
