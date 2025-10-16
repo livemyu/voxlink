@@ -12,6 +12,13 @@ license = { text = "Apache-2.0" }
 authors = [{ name = "Huang Yu" }]
 keywords = ["speech", "llm", "discrete-units", "asr", "spoken-language-understanding"]
 
+[project.optional-dependencies]
+numpy = ["numpy>=1.21"]
+torch = ["torch>=1.13"]
+
+[project.scripts]
+voxlink = "voxlink.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/livemyu/voxlink"
 Issues = "https://github.com/livemyu/voxlink/issues"
