@@ -52,3 +52,43 @@ class FrontendConfig:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+@dataclass(frozen=True)
+class UnitConfig:
+    """离散语音单元（k-means 码本）参数。"""
+
+    n_units: int = 100
+    max_iters: int = 50
+    tol: float = 1e-4
+    seed: int = 0
+    dedup: bool = True
+
+    def __post_init__(self) -> None:
+        if self.n_units < 2:
+            raise ConfigError("n_units 至少为 2")
+        if self.max_iters < 1:
+            raise ConfigError("max_iters 至少为 1")
+        if self.tol < 0:
+            raise ConfigError("tol 不能为负")
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class ModelConfig:
+    """语言模型（n-gram 参考实现）参数。"""
+
+    order: int = 3
+    smoothing: float = 0.1
+    seed: int = 0
+
+    def __post_init__(self) -> None:
+        if self.order < 1:
+            raise ConfigError("order 至少为 1")
+        if self.smoothing <= 0:
+            raise ConfigError("smoothing（add-k）必须为正")
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
