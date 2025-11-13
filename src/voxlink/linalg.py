@@ -56,3 +56,30 @@ def mean(vectors: Sequence[Sequence[float]]) -> Vector:
         for i, x in enumerate(v):
             acc[i] += x
     return [s / n for s in acc]
+
+
+def zeros(rows: int, cols: int) -> Matrix:
+    """生成 ``rows × cols`` 的零矩阵。"""
+    return [[0.0] * cols for _ in range(rows)]
+
+
+def transpose(m: Matrix) -> Matrix:
+    """矩阵转置。"""
+    if not m:
+        return []
+    return [list(col) for col in zip(*m, strict=True)]
+
+
+def matmul(a: Matrix, b: Matrix) -> Matrix:
+    """朴素矩阵乘法 ``a @ b``。"""
+    if not a or not b:
+        return []
+    if len(a[0]) != len(b):
+        raise ValueError(f"内维不匹配: {len(a[0])} vs {len(b)}")
+    bt = transpose(b)
+    return [[dot(row, col) for col in bt] for row in a]
+
+
+def matvec(m: Matrix, v: Sequence[float]) -> Vector:
+    """矩阵乘向量 ``m @ v``。"""
+    return [dot(row, v) for row in m]
