@@ -40,11 +40,11 @@ class FrontendConfig:
 
     @property
     def frame_length(self) -> int:
-        return int(round(self.sample_rate * self.frame_length_ms / 1000.0))
+        return round(self.sample_rate * self.frame_length_ms / 1000.0)
 
     @property
     def frame_shift(self) -> int:
-        return int(round(self.sample_rate * self.frame_shift_ms / 1000.0))
+        return round(self.sample_rate * self.frame_shift_ms / 1000.0)
 
     @property
     def frame_rate(self) -> float:
