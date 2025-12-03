@@ -19,16 +19,16 @@ from .types import FeatureMatrix, Utterance, Waveform
 __version__ = "0.1.0"
 
 __all__ = [
-    "__version__",
-    "FrontendConfig",
-    "UnitConfig",
-    "ModelConfig",
-    "Waveform",
+    "AudioError",
+    "ConfigError",
+    "FeatureError",
     "FeatureMatrix",
+    "FrontendConfig",
+    "ModelConfig",
+    "ModelError",
+    "UnitConfig",
     "Utterance",
     "VoxlinkError",
-    "AudioError",
-    "FeatureError",
-    "ConfigError",
-    "ModelError",
+    "Waveform",
+    "__version__",
 ]
