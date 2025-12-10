@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["wer", "cer"]
+__all__ = ["cer", "wer"]
 
 
 def wer(reference: str, hypothesis: str) -> float:  # pragma: no cover - 占位
