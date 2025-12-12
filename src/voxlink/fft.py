@@ -74,3 +74,18 @@ def fft(signal: Vector) -> list[complex]:
                 values[start + k + half] = a - b
         length *= 2
     return values
+
+
+def rfft_power(frame: Vector, n_fft: int) -> Vector:
+    """实信号的单边功率谱。
+
+    帧会被零填充或截断到 ``n_fft``，返回长度 ``n_fft // 2 + 1`` 的功率
+    （幅度平方）序列。
+    """
+    if len(frame) < n_fft:
+        padded = list(frame) + [0.0] * (n_fft - len(frame))
+    else:
+        padded = list(frame[:n_fft])
+    spectrum = fft(padded)
+    n_bins = n_fft // 2 + 1
+    return [(c.real * c.real + c.imag * c.imag) for c in spectrum[:n_bins]]
