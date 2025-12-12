@@ -8,10 +8,19 @@ from __future__ import annotations
 
 import cmath
 import math
+from functools import lru_cache
 
 from .types import Vector
 
 __all__ = ["dft", "fft", "rfft_power"]
+
+
+@lru_cache(maxsize=32)
+def _twiddles(length: int) -> tuple[complex, ...]:
+    """缓存某一级蝶形运算所需的旋转因子。"""
+    step = -2.0j * math.pi / length
+    half = length // 2
+    return tuple(cmath.exp(step * k) for k in range(half))
 
 
 def dft(signal: Vector) -> list[complex]:
@@ -56,12 +65,11 @@ def fft(signal: Vector) -> list[complex]:
     length = 2
     while length <= n:
         half = length // 2
-        step = -2.0j * math.pi / length
+        tw = _twiddles(length)
         for start in range(0, n, length):
             for k in range(half):
-                twiddle = cmath.exp(step * k)
                 a = values[start + k]
-                b = values[start + k + half] * twiddle
+                b = values[start + k + half] * tw[k]
                 values[start + k] = a + b
                 values[start + k + half] = a - b
         length *= 2
