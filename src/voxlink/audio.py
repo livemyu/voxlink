@@ -12,7 +12,7 @@ import wave
 from .exceptions import AudioError
 from .types import Vector, Waveform
 
-__all__ = ["load_wav", "save_wav", "pcm_to_float", "float_to_pcm"]
+__all__ = ["float_to_pcm", "load_wav", "pcm_to_float", "save_wav"]
 
 _INT_MAX = {8: 127, 16: 32767, 24: 8388607, 32: 2147483647}
 
@@ -84,3 +84,33 @@ def load_wav(path: str) -> Waveform:
     else:
         mono = floats
     return Waveform(samples=mono, sample_rate=sample_rate)
+
+
+def _pack_pcm(samples: list[int], bits: int) -> bytes:
+    """把有符号整数采样打包成小端字节。"""
+    if bits == 8:
+        return bytes((s + 128) & 0xFF for s in samples)
+    if bits == 16:
+        return struct.pack(f"<{len(samples)}h", *samples)
+    if bits == 32:
+        return struct.pack(f"<{len(samples)}i", *samples)
+    if bits == 24:
+        buf = bytearray()
+        for s in samples:
+            buf += int(s).to_bytes(3, "little", signed=True)
+        return bytes(buf)
+    raise AudioError(f"不支持的位深: {bits}")
+
+
+def save_wav(path: str, wave_obj: Waveform, *, bits: int = 16) -> None:
+    """把单声道浮点波形写成 PCM WAV 文件。"""
+    ints = float_to_pcm(wave_obj.samples, bits)
+    frames = _pack_pcm(ints, bits)
+    try:
+        with wave.open(path, "wb") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(bits // 8)
+            wf.setframerate(wave_obj.sample_rate)
+            wf.writeframes(frames)
+    except wave.Error as exc:
+        raise AudioError(f"无法写入 WAV 文件 {path!r}: {exc}") from exc
