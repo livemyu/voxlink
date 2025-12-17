@@ -14,6 +14,7 @@ __all__ = [
     "frame_signal",
     "hann_window",
     "hamming_window",
+    "apply_window",
     "resample",
 ]
 
@@ -51,3 +52,26 @@ def frame_signal(samples: Vector, frame_length: int, frame_shift: int) -> Matrix
             chunk = chunk + [0.0] * (frame_length - len(chunk))
         frames.append(chunk)
     return frames
+
+
+def hann_window(size: int) -> Vector:
+    """Hann 窗（周期性定义，适合 STFT）。"""
+    if size < 1:
+        raise ValueError("窗长必须为正")
+    if size == 1:
+        return [1.0]
+    return [0.5 - 0.5 * math.cos(2.0 * math.pi * n / size) for n in range(size)]
+
+
+def hamming_window(size: int) -> Vector:
+    """Hamming 窗。"""
+    if size < 1:
+        raise ValueError("窗长必须为正")
+    if size == 1:
+        return [1.0]
+    return [0.54 - 0.46 * math.cos(2.0 * math.pi * n / (size - 1)) for n in range(size)]
+
+
+def apply_window(frame: Vector, window: Vector) -> Vector:
+    """逐元素加窗。"""
+    return [x * w for x, w in zip(frame, window, strict=True)]
