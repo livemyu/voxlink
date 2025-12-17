@@ -75,3 +75,28 @@ def hamming_window(size: int) -> Vector:
 def apply_window(frame: Vector, window: Vector) -> Vector:
     """逐元素加窗。"""
     return [x * w for x, w in zip(frame, window, strict=True)]
+
+
+def resample(samples: Vector, src_rate: int, dst_rate: int) -> Vector:
+    """线性插值重采样。
+
+    这是一个轻量参考实现，未做抗混叠滤波；对特征提取前的采样率对齐足够，
+    对高保真场景应换用带 sinc 滤波的实现。
+    """
+    if src_rate <= 0 or dst_rate <= 0:
+        raise ValueError("采样率必须为正")
+    if src_rate == dst_rate or not samples:
+        return list(samples)
+    n_src = len(samples)
+    n_dst = max(1, round(n_src * dst_rate / src_rate))
+    ratio = (n_src - 1) / (n_dst - 1) if n_dst > 1 else 0.0
+    out: Vector = []
+    for i in range(n_dst):
+        pos = i * ratio
+        left = int(math.floor(pos))
+        frac = pos - left
+        if left + 1 < n_src:
+            out.append(samples[left] * (1.0 - frac) + samples[left + 1] * frac)
+        else:
+            out.append(samples[left])
+    return out
