@@ -33,7 +33,7 @@ def float_to_pcm(samples: Vector, bits: int) -> list[int]:
     out = []
     for s in samples:
         clipped = min(1.0, max(-1.0, s))
-        out.append(int(round(clipped * peak)))
+        out.append(round(clipped * peak))
     return out
 
 
@@ -78,8 +78,7 @@ def load_wav(path: str) -> Waveform:
 
     if n_channels > 1:
         mono = [
-            sum(floats[i : i + n_channels]) / n_channels
-            for i in range(0, len(floats), n_channels)
+            sum(floats[i : i + n_channels]) / n_channels for i in range(0, len(floats), n_channels)
         ]
     else:
         mono = floats
