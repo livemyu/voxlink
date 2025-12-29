@@ -16,7 +16,7 @@ from .linalg import matmul, transpose
 from .melbank import mel_filterbank
 from .types import FeatureMatrix, Matrix, Waveform
 
-__all__ = ["Frontend", "power_spectrogram", "log_mel_spectrogram", "mfcc"]
+__all__ = ["Frontend", "power_spectrogram", "log_mel_spectrogram", "mfcc", "cmvn"]
 
 _LOG_FLOOR = 1e-10
 
@@ -55,3 +55,23 @@ def mfcc(wave: Waveform, config: FrontendConfig) -> Matrix:
     if not logmel:
         return []
     return dct2_rows(logmel, config.n_mfcc)
+
+
+def cmvn(feats: Matrix, *, variance: bool = False) -> Matrix:
+    """倒谱均值（方差）归一化。
+
+    对每一维减去均值；``variance=True`` 时再除以标准差。
+    """
+    if not feats:
+        return []
+    n = len(feats)
+    dim = len(feats[0])
+    means = [math.fsum(row[j] for row in feats) / n for j in range(dim)]
+    if variance:
+        stds = []
+        for j in range(dim):
+            var = math.fsum((row[j] - means[j]) ** 2 for row in feats) / n
+            stds.append(math.sqrt(var) or 1.0)
+    else:
+        stds = [1.0] * dim
+    return [[(row[j] - means[j]) / stds[j] for j in range(dim)] for row in feats]
