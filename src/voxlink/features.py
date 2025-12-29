@@ -9,13 +9,14 @@ from __future__ import annotations
 import math
 
 from .config import FrontendConfig
+from .dct import dct2_rows
 from .dsp import apply_window, frame_signal, hann_window, preemphasis
 from .fft import rfft_power
 from .linalg import matmul, transpose
 from .melbank import mel_filterbank
 from .types import FeatureMatrix, Matrix, Waveform
 
-__all__ = ["Frontend", "power_spectrogram", "log_mel_spectrogram"]
+__all__ = ["Frontend", "power_spectrogram", "log_mel_spectrogram", "mfcc"]
 
 _LOG_FLOOR = 1e-10
 
@@ -46,3 +47,11 @@ def log_mel_spectrogram(wave: Waveform, config: FrontendConfig) -> Matrix:
     # (frames, bins) @ (bins, n_mels) -> (frames, n_mels)
     mel = matmul(power, transpose(fb))
     return [[math.log(max(v, _LOG_FLOOR)) for v in row] for row in mel]
+
+
+def mfcc(wave: Waveform, config: FrontendConfig) -> Matrix:
+    """从 log-mel 通过 DCT-II 得到 MFCC，返回 ``(num_frames, n_mfcc)``。"""
+    logmel = log_mel_spectrogram(wave, config)
+    if not logmel:
+        return []
+    return dct2_rows(logmel, config.n_mfcc)
