@@ -10,11 +10,11 @@ import math
 from .types import Matrix, Vector
 
 __all__ = [
-    "preemphasis",
-    "frame_signal",
-    "hann_window",
-    "hamming_window",
     "apply_window",
+    "frame_signal",
+    "hamming_window",
+    "hann_window",
+    "preemphasis",
     "resample",
 ]
 
@@ -39,10 +39,7 @@ def frame_signal(samples: Vector, frame_length: int, frame_shift: int) -> Matrix
     n = len(samples)
     if n == 0:
         return []
-    if n <= frame_length:
-        num_frames = 1
-    else:
-        num_frames = 1 + math.ceil((n - frame_length) / frame_shift)
+    num_frames = 1 if n <= frame_length else 1 + math.ceil((n - frame_length) / frame_shift)
 
     frames: Matrix = []
     for i in range(num_frames):
@@ -93,7 +90,7 @@ def resample(samples: Vector, src_rate: int, dst_rate: int) -> Vector:
     out: Vector = []
     for i in range(n_dst):
         pos = i * ratio
-        left = int(math.floor(pos))
+        left = math.floor(pos)
         frac = pos - left
         if left + 1 < n_src:
             out.append(samples[left] * (1.0 - frac) + samples[left + 1] * frac)
