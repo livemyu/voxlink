@@ -6,7 +6,7 @@ import math
 
 from .types import Matrix
 
-__all__ = ["hz_to_mel", "mel_to_hz", "mel_filterbank"]
+__all__ = ["hz_to_mel", "mel_filterbank", "mel_to_hz"]
 
 
 def hz_to_mel(hz: float) -> float:
@@ -16,7 +16,7 @@ def hz_to_mel(hz: float) -> float:
 
 def mel_to_hz(mel: float) -> float:
     """梅尔转赫兹。"""
-    return 700.0 * (10.0 ** (mel / 2595.0) - 1.0)
+    return 700.0 * float(10.0 ** (mel / 2595.0) - 1.0)
 
 
 def mel_filterbank(
@@ -40,7 +40,7 @@ def mel_filterbank(
     mel_points = [mel_min + (mel_max - mel_min) * i / (n_mels + 1) for i in range(n_mels + 2)]
     hz_points = [mel_to_hz(m) for m in mel_points]
     # 映射到 FFT bin 索引
-    bin_points = [int(math.floor((n_fft + 1) * hz / sample_rate)) for hz in hz_points]
+    bin_points = [math.floor((n_fft + 1) * hz / sample_rate) for hz in hz_points]
 
     fb: Matrix = [[0.0] * n_bins for _ in range(n_mels)]
     for m in range(1, n_mels + 1):
