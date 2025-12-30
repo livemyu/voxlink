@@ -75,3 +75,39 @@ def cmvn(feats: Matrix, *, variance: bool = False) -> Matrix:
     else:
         stds = [1.0] * dim
     return [[(row[j] - means[j]) / stds[j] for j in range(dim)] for row in feats]
+
+
+class Frontend:
+    """把波形转成特征矩阵的可调用前端。
+
+    Args:
+        config: 前端配置；缺省使用默认值。
+        feature: ``"mfcc"``（默认）或 ``"logmel"``。
+        normalize: 是否做倒谱均值归一化。
+    """
+
+    def __init__(
+        self,
+        config: FrontendConfig | None = None,
+        *,
+        feature: str = "mfcc",
+        normalize: bool = True,
+    ) -> None:
+        if feature not in ("mfcc", "logmel"):
+            raise ValueError(f"未知特征类型: {feature}")
+        self.config = config or FrontendConfig()
+        self.feature = feature
+        self.normalize = normalize
+
+    @property
+    def output_dim(self) -> int:
+        return self.config.n_mfcc if self.feature == "mfcc" else self.config.n_mels
+
+    def __call__(self, wave: Waveform) -> FeatureMatrix:
+        if self.feature == "mfcc":
+            frames = mfcc(wave, self.config)
+        else:
+            frames = log_mel_spectrogram(wave, self.config)
+        if self.normalize:
+            frames = cmvn(frames)
+        return FeatureMatrix(frames=frames, frame_rate=self.config.frame_rate)
