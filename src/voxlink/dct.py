@@ -16,9 +16,7 @@ def dct2_matrix(n_out: int, n_in: int) -> tuple[tuple[float, ...], ...]:
     basis = []
     for k in range(n_out):
         scale = math.sqrt(1.0 / n_in) if k == 0 else math.sqrt(2.0 / n_in)
-        row = tuple(
-            scale * math.cos(math.pi * (2 * n + 1) * k / (2 * n_in)) for n in range(n_in)
-        )
+        row = tuple(scale * math.cos(math.pi * (2 * n + 1) * k / (2 * n_in)) for n in range(n_in))
         basis.append(row)
     return tuple(basis)
 
