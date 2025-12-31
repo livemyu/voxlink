@@ -52,3 +52,18 @@ def _assign(data: Matrix, centers: Matrix) -> list[int]:
                 best = j
         labels.append(best)
     return labels
+
+
+def _update(data: Matrix, labels: list[int], k: int, rng: Rng) -> Matrix:
+    """根据分配重算中心；空簇用随机点重初始化。"""
+    buckets: list[Matrix] = [[] for _ in range(k)]
+    for x, lab in zip(data, labels, strict=True):
+        buckets[lab].append(x)
+    centers: Matrix = []
+    for cluster in buckets:
+        if cluster:
+            centers.append(mean(cluster))
+        else:
+            # 空簇：从数据集中随机挑一个点，避免中心塌缩
+            centers.append(list(data[rng.randint(0, len(data))]))
+    return centers
