@@ -18,7 +18,7 @@ def test_wav_roundtrip(tmp_path) -> None:
     assert loaded.sample_rate == sr
     assert loaded.num_samples == len(samples)
     # 16-bit 量化误差应很小
-    max_err = max(abs(a - b) for a, b in zip(samples, loaded.samples))
+    max_err = max(abs(a - b) for a, b in zip(samples, loaded.samples, strict=True))
     assert max_err < 1e-3
 
 
