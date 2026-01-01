@@ -37,3 +37,18 @@ def _kmeans_plus_plus(data: Matrix, k: int, rng: Rng) -> Matrix:
                 break
         centers.append(list(data[chosen]))
     return centers
+
+
+def _assign(data: Matrix, centers: Matrix) -> list[int]:
+    """把每个点分配到最近的中心，返回标签。"""
+    labels = []
+    for x in data:
+        best = 0
+        best_d = sq_euclidean(x, centers[0])
+        for j in range(1, len(centers)):
+            d = sq_euclidean(x, centers[j])
+            if d < best_d:
+                best_d = d
+                best = j
+        labels.append(best)
+    return labels
