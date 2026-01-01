@@ -56,3 +56,11 @@ def test_logmel_dims() -> None:
 
 def test_dct_zero_input() -> None:
     assert dct2([0.0, 0.0, 0.0, 0.0], 3) == [0.0, 0.0, 0.0]
+
+
+def test_mel_filterbank_partitions_energy() -> None:
+    # 相邻三角滤波器在交叠处权重之和应接近 1（除边缘外）
+    fb = mel_filterbank(n_mels=10, n_fft=256, sample_rate=16000, fmin=0.0, fmax=8000.0)
+    col_sums = [sum(fb[m][k] for m in range(len(fb))) for k in range(len(fb[0]))]
+    # 覆盖到的频点权重和不应超过 1 太多
+    assert max(col_sums) <= 1.5
