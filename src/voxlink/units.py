@@ -39,3 +39,30 @@ class Quantizer:
     @property
     def is_fitted(self) -> bool:
         return self._kmeans is not None and self._kmeans.centers is not None
+
+    def fit(self, feature_frames: Matrix) -> Quantizer:
+        """在一批特征帧上训练码本。"""
+        km = KMeans(
+            self.config.n_units,
+            max_iters=self.config.max_iters,
+            tol=self.config.tol,
+            seed=self.config.seed,
+        )
+        km.fit(feature_frames)
+        self._kmeans = km
+        return self
+
+    def encode(self, feats: FeatureMatrix) -> list[int]:
+        """把特征矩阵编码为离散单元序列。"""
+        if self._kmeans is None:
+            raise ModelError("Quantizer 尚未训练码本")
+        units = self._kmeans.predict(feats.frames)
+        if self.config.dedup:
+            units = dedup_units(units)
+        return units
+
+    @property
+    def centers(self) -> Matrix:
+        if self._kmeans is None or self._kmeans.centers is None:
+            raise ModelError("Quantizer 尚未训练码本")
+        return self._kmeans.centers
