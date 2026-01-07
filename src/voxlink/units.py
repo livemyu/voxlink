@@ -66,3 +66,24 @@ class Quantizer:
         if self._kmeans is None or self._kmeans.centers is None:
             raise ModelError("Quantizer 尚未训练码本")
         return self._kmeans.centers
+
+    def save(self, path: str) -> None:
+        """把码本与配置写成 JSON。"""
+        write_json(
+            path,
+            {
+                "config": self.config.to_dict(),
+                "centers": self.centers,
+            },
+        )
+
+    @classmethod
+    def load(cls, path: str) -> Quantizer:
+        """从 JSON 恢复量化器。"""
+        payload = read_json(path)
+        config = UnitConfig(**payload["config"])
+        quant = cls(config)
+        km = KMeans(config.n_units, seed=config.seed)
+        km.centers = [list(map(float, row)) for row in payload["centers"]]
+        quant._kmeans = km
+        return quant
