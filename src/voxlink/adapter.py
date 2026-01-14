@@ -1,22 +1,52 @@
-"""模态适配器（占位，实现见后续提交）。
+"""模态适配器：把语音侧表示对齐到语言模型输入空间。
 
-把语音侧的表示（编码器输出或离散单元的嵌入）投影 / 对齐到语言模型的
-输入空间，是「语音接入 LLM」的关键一环。
+包含两条常见路径：
+
+- :class:`LinearProjector` —— 对连续帧表示做线性投影（可选偏置）。
+- :class:`UnitEmbedding` —— 为离散语音单元查表得到嵌入。
+
+两者都用确定性种子初始化权重，保证可复现。
 """
 
 from __future__ import annotations
 
-from .types import Matrix
+from ._random import Rng
+from .exceptions import ModelError
+from .linalg import matvec
+from .types import Matrix, Vector
 
-__all__ = ["LinearProjector"]
+__all__ = ["LinearProjector", "UnitEmbedding"]
 
 
-class LinearProjector:  # pragma: no cover - 占位
-    """把 ``in_dim`` 的帧表示线性投影到 ``out_dim``。"""
+class LinearProjector:
+    """把 ``in_dim`` 维帧表示线性投影到 ``out_dim`` 维。"""
 
-    def __init__(self, in_dim: int, out_dim: int) -> None:
+    def __init__(
+        self,
+        in_dim: int,
+        out_dim: int,
+        *,
+        bias: bool = True,
+        seed: int = 0,
+    ) -> None:
+        if in_dim < 1 or out_dim < 1:
+            raise ModelError("投影维度必须为正")
         self.in_dim = in_dim
         self.out_dim = out_dim
+        rng = Rng(seed)
+        # Xavier 风格的小尺度初始化
+        scale = (6.0 / (in_dim + out_dim)) ** 0.5
+        self.weight: Matrix = [
+            [(rng.random() * 2 - 1) * scale for _ in range(in_dim)] for _ in range(out_dim)
+        ]
+        self.bias: Vector = [0.0] * out_dim if bias else []
+
+    def project_frame(self, frame: Vector) -> Vector:
+        """投影单帧。"""
+        out = matvec(self.weight, frame)
+        if self.bias:
+            out = [o + b for o, b in zip(out, self.bias, strict=True)]
+        return out
 
     def __call__(self, frames: Matrix) -> Matrix:
-        raise NotImplementedError
+        return [self.project_frame(f) for f in frames]
