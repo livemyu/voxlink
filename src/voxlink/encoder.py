@@ -11,9 +11,17 @@ from typing import Protocol, runtime_checkable
 
 from .config import FrontendConfig
 from .features import Frontend
+from .linalg import l2_norm
 from .types import FeatureMatrix, Matrix, Vector, Waveform
 
-__all__ = ["SpeechEncoder", "MFCCEncoder", "mean_pool", "max_pool", "stack_frames"]
+__all__ = [
+    "SpeechEncoder",
+    "MFCCEncoder",
+    "mean_pool",
+    "max_pool",
+    "stack_frames",
+    "l2_normalize",
+]
 
 
 @runtime_checkable
@@ -69,3 +77,46 @@ def stack_frames(frames: Matrix, factor: int) -> Matrix:
             merged.extend(frames[i + k])
         out.append(merged)
     return out
+
+
+def l2_normalize(frames: Matrix, eps: float = 1e-8) -> Matrix:
+    """对每一帧做 L2 归一化。"""
+    normed: Matrix = []
+    for row in frames:
+        norm = l2_norm(row) or eps
+        normed.append([v / norm for v in row])
+    return normed
+
+
+class MFCCEncoder:
+    """基于 MFCC 前端的参考语音编码器。
+
+    Args:
+        config: 前端配置。
+        subsample: 拼帧下采样倍数（1 表示不下采样）。
+        normalize: 是否对输出帧做 L2 归一化。
+    """
+
+    def __init__(
+        self,
+        config: FrontendConfig | None = None,
+        *,
+        subsample: int = 1,
+        normalize: bool = True,
+    ) -> None:
+        self.config = config or FrontendConfig()
+        self.subsample = subsample
+        self.normalize = normalize
+        self._frontend = Frontend(self.config, feature="mfcc", normalize=True)
+
+    @property
+    def output_dim(self) -> int:
+        return self.config.n_mfcc * self.subsample
+
+    def encode(self, wave: Waveform) -> FeatureMatrix:
+        feats = self._frontend(wave)
+        frames = stack_frames(feats.frames, self.subsample)
+        if self.normalize:
+            frames = l2_normalize(frames)
+        frame_rate = feats.frame_rate / self.subsample
+        return FeatureMatrix(frames=frames, frame_rate=frame_rate)
