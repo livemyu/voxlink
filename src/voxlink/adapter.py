@@ -50,3 +50,29 @@ class LinearProjector:
 
     def __call__(self, frames: Matrix) -> Matrix:
         return [self.project_frame(f) for f in frames]
+
+
+class UnitEmbedding:
+    """离散语音单元的可查表嵌入。
+
+    每个单元 id 对应一行 ``dim`` 维向量，用确定性种子随机初始化。
+    """
+
+    def __init__(self, n_units: int, dim: int, *, seed: int = 0) -> None:
+        if n_units < 1 or dim < 1:
+            raise ModelError("n_units 与 dim 必须为正")
+        self.n_units = n_units
+        self.dim = dim
+        rng = Rng(seed)
+        scale = (1.0 / dim) ** 0.5
+        self.table: Matrix = [
+            [rng.gauss(0.0, scale) for _ in range(dim)] for _ in range(n_units)
+        ]
+
+    def lookup(self, unit: int) -> Vector:
+        if not 0 <= unit < self.n_units:
+            raise ModelError(f"单元 id 越界: {unit}")
+        return list(self.table[unit])
+
+    def __call__(self, units: list[int]) -> Matrix:
+        return [self.lookup(u) for u in units]
