@@ -40,3 +40,25 @@ class NgramLM:
     @property
     def order(self) -> int:
         return self.config.order
+
+    def _observe(self, context: tuple[int, ...], token: int) -> None:
+        """在对应阶数的表里累加一次 (context, token) 计数。"""
+        n = len(context)
+        table = self._counts[n]
+        bucket = table[context]
+        bucket[token] = bucket.get(token, 0) + 1
+        self._totals[n][context] += 1
+
+    def fit(self, sequences: Sequence[Sequence[int]]) -> NgramLM:
+        """在多条 token 序列上统计各阶 n-gram。"""
+        order = self.config.order
+        for seq in sequences:
+            tokens = list(seq)
+            for i, token in enumerate(tokens):
+                # 对当前位置，累加 0..order-1 阶的上下文
+                for n in range(order):
+                    if i - n < 0:
+                        break
+                    context = tuple(tokens[i - n : i])
+                    self._observe(context, token)
+        return self
