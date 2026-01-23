@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from collections.abc import Sequence
 
@@ -90,3 +91,28 @@ class NgramLM:
             if not ctx:
                 return 1.0 / self._vocab_size
             ctx = ctx[1:]
+
+    def _backoff_context(self, context: Sequence[int]) -> tuple[int, ...]:
+        """选出最长的、曾出现过的上下文（用于构造归一化分布）。"""
+        ctx = tuple(context)[-(self.config.order - 1) :] if self.config.order > 1 else ()
+        while ctx and self._totals[len(ctx)].get(ctx, 0) == 0:
+            ctx = ctx[1:]
+        return ctx
+
+    def logprobs(self, prefix: Sequence[int]) -> list[float]:
+        """返回给定前缀下、整个词表的对数概率（已归一化）。"""
+        ctx = self._backoff_context(prefix)
+        n = len(ctx)
+        total = self._totals[n].get(ctx, 0)
+        k = self.config.smoothing
+        denom = total + k * self._vocab_size
+        counts = self._counts[n].get(ctx, {})
+        if total == 0:
+            uniform = -math.log(self._vocab_size)
+            return [uniform] * self._vocab_size
+        return [math.log((counts.get(t, 0) + k) / denom) for t in range(self._vocab_size)]
+
+    def score(self, sequence: Sequence[int]) -> float:
+        """序列的对数似然 sum log P(t_i | t_<i)。"""
+        tokens = list(sequence)
+        return math.fsum(math.log(self.prob(tokens[:i], tokens[i])) for i in range(len(tokens)))
