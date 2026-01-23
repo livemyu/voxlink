@@ -62,3 +62,31 @@ class NgramLM:
                     context = tuple(tokens[i - n : i])
                     self._observe(context, token)
         return self
+
+    def _prob_at_order(self, context: tuple[int, ...], token: int) -> float | None:
+        """在给定阶数上用 add-k 平滑估计 P(token | context)。
+
+        若该上下文从未出现，返回 ``None`` 以触发回退。
+        """
+        n = len(context)
+        total = self._totals[n].get(context, 0)
+        if total == 0:
+            return None
+        k = self.config.smoothing
+        count = self._counts[n].get(context, {}).get(token, 0)
+        return (count + k) / (total + k * self._vocab_size)
+
+    def prob(self, context: Sequence[int], token: int) -> float:
+        """带回退的条件概率 P(token | context)。
+
+        从最长可用上下文开始，逐级回退到更短上下文；全部落空时退化为均匀
+        分布。
+        """
+        ctx = tuple(context)[-(self.config.order - 1) :] if self.config.order > 1 else ()
+        while True:
+            p = self._prob_at_order(ctx, token)
+            if p is not None:
+                return p
+            if not ctx:
+                return 1.0 / self._vocab_size
+            ctx = ctx[1:]
