@@ -11,8 +11,10 @@ import math
 from collections import defaultdict
 from collections.abc import Sequence
 
+from ._random import Rng
 from .config import ModelConfig
 from .exceptions import ModelError
+from .mathx import softmax
 
 __all__ = ["NgramLM"]
 
@@ -116,3 +118,17 @@ class NgramLM:
         """序列的对数似然 sum log P(t_i | t_<i)。"""
         tokens = list(sequence)
         return math.fsum(math.log(self.prob(tokens[:i], tokens[i])) for i in range(len(tokens)))
+
+    def sample_next(self, prefix: Sequence[int], rng: Rng, temperature: float = 1.0) -> int:
+        """从下一 token 分布中采样（带温度）。"""
+        logp = self.logprobs(prefix)
+        if temperature != 1.0:
+            logp = [lp / temperature for lp in logp]
+        probs = softmax(logp)
+        target = rng.random()
+        acc = 0.0
+        for token, p in enumerate(probs):
+            acc += p
+            if acc >= target:
+                return token
+        return len(probs) - 1
