@@ -14,6 +14,7 @@ from collections.abc import Sequence
 from ._random import Rng
 from .config import ModelConfig
 from .exceptions import ModelError
+from .io_utils import read_json, write_json
 from .mathx import softmax
 
 __all__ = ["NgramLM"]
@@ -132,3 +133,40 @@ class NgramLM:
             if acc >= target:
                 return token
         return len(probs) - 1
+
+    def to_dict(self) -> dict[str, object]:
+        """把模型序列化为可 JSON 化的字典。"""
+        # 上下文元组用空格连接的字符串作为 key（空上下文为 ""）
+        tables = []
+        for table in self._counts:
+            flat = {
+                " ".join(map(str, ctx)): dict(bucket.items()) for ctx, bucket in table.items()
+            }
+            tables.append(flat)
+        return {
+            "vocab_size": self._vocab_size,
+            "config": self.config.to_dict(),
+            "counts": tables,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, object]) -> NgramLM:
+        """从 :meth:`to_dict` 的结果重建模型。"""
+        config = ModelConfig(**payload["config"])  # type: ignore[arg-type]
+        model = cls(int(payload["vocab_size"]), config)  # type: ignore[arg-type]
+        tables = payload["counts"]
+        assert isinstance(tables, list)
+        for n, flat in enumerate(tables):
+            for ctx_str, bucket in flat.items():
+                ctx = tuple(int(x) for x in ctx_str.split()) if ctx_str else ()
+                counts = {int(t): int(c) for t, c in bucket.items()}
+                model._counts[n][ctx] = counts
+                model._totals[n][ctx] = sum(counts.values())
+        return model
+
+    def save(self, path: str) -> None:
+        write_json(path, self.to_dict())
+
+    @classmethod
+    def load(cls, path: str) -> NgramLM:
+        return cls.from_dict(read_json(path))
