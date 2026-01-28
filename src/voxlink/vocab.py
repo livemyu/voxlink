@@ -10,7 +10,7 @@ from __future__ import annotations
 from .exceptions import ModelError
 from .io_utils import read_json, write_json
 
-__all__ = ["Vocab", "SpecialTokens"]
+__all__ = ["Vocab", "SpecialTokens", "build_joint_vocab"]
 
 
 class SpecialTokens:
@@ -63,3 +63,26 @@ class Vocab:
     def load(cls, path: str) -> Vocab:
         payload = read_json(path)
         return cls(payload["tokens"])
+
+
+def build_joint_vocab(
+    n_units: int,
+    text_tokens: list[str],
+    *,
+    task_tokens: list[str] | None = None,
+) -> Vocab:
+    """构造语音单元 + 文本 token 的联合词表。
+
+    布局为：``[特殊符号][任务标记][语音单元 u_0..u_{n-1}][文本 token]``。
+    语音单元统一命名为 ``u_<id>``，与文本 token 通过前缀区分。
+    """
+    tokens: list[str] = list(SpecialTokens.ALL)
+    if task_tokens:
+        tokens.extend(task_tokens)
+    tokens.extend(f"u_{i}" for i in range(n_units))
+    seen = set(tokens)
+    for t in text_tokens:
+        if t not in seen:
+            tokens.append(t)
+            seen.add(t)
+    return Vocab(tokens)
