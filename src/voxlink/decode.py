@@ -85,3 +85,51 @@ def _sample_from(probs: Sequence[float], rng: Rng) -> int:
         if acc >= target:
             return token
     return len(probs) - 1
+
+
+def beam_search(
+    model: LanguageModel,
+    prompt: Sequence[int],
+    max_new_tokens: int,
+    eos: int,
+    *,
+    beam_size: int = 4,
+    length_penalty: float = 0.0,
+) -> list[int]:
+    """定宽 beam search，返回得分最高的候选序列。
+
+    得分为累计对数概率，可选长度惩罚 ``score / len**alpha`` 以缓解 beam
+    search 偏好短序列的问题。
+    """
+    if beam_size < 1:
+        raise ValueError("beam_size 必须为正")
+    # 每个 beam: (tokens, score, finished)
+    beams: list[tuple[list[int], float, bool]] = [([], 0.0, False)]
+    for _ in range(max_new_tokens):
+        if all(finished for _, _, finished in beams):
+            break
+        candidates: list[tuple[list[int], float, bool]] = []
+        for tokens, score, finished in beams:
+            if finished:
+                candidates.append((tokens, score, True))
+                continue
+            logp = model.logprobs(list(prompt) + tokens)
+            ranked = sorted(range(len(logp)), key=lambda t: logp[t], reverse=True)
+            for token in ranked[:beam_size]:
+                new_tokens = [*tokens, token]
+                new_score = score + logp[token]
+                candidates.append((new_tokens, new_score, token == eos))
+        candidates.sort(key=lambda b: _beam_priority(b, length_penalty), reverse=True)
+        beams = candidates[:beam_size]
+    best = max(beams, key=lambda b: _beam_priority(b, length_penalty))
+    tokens = best[0]
+    if tokens and tokens[-1] == eos:
+        tokens = tokens[:-1]
+    return tokens
+
+
+def _beam_priority(beam: tuple[list[int], float, bool], length_penalty: float) -> float:
+    tokens, score, _ = beam
+    if length_penalty and tokens:
+        return score / (len(tokens) ** length_penalty)
+    return score
