@@ -10,8 +10,9 @@ from collections.abc import Sequence
 
 from ._random import Rng
 from .llm import LanguageModel
+from .mathx import softmax
 
-__all__ = ["greedy_decode", "sample_decode", "beam_search"]
+__all__ = ["greedy_decode", "sample_decode", "beam_search", "top_k_filter"]
 
 
 def _argmax(values: Sequence[float]) -> int:
@@ -38,3 +39,49 @@ def greedy_decode(
         generated.append(token)
         context.append(token)
     return generated
+
+
+def top_k_filter(logprobs: Sequence[float], k: int) -> list[float]:
+    """只保留 top-k 的对数概率，其余置为 ``-inf``。"""
+    if k <= 0 or k >= len(logprobs):
+        return list(logprobs)
+    threshold = sorted(logprobs, reverse=True)[k - 1]
+    return [lp if lp >= threshold else float("-inf") for lp in logprobs]
+
+
+def sample_decode(
+    model: LanguageModel,
+    prompt: Sequence[int],
+    max_new_tokens: int,
+    eos: int,
+    *,
+    rng: Rng,
+    temperature: float = 1.0,
+    top_k: int = 0,
+) -> list[int]:
+    """带温度与可选 top-k 的采样解码。"""
+    if temperature <= 0:
+        raise ValueError("temperature 必须为正")
+    generated: list[int] = []
+    context = list(prompt)
+    for _ in range(max_new_tokens):
+        logp = [lp / temperature for lp in model.logprobs(context)]
+        if top_k:
+            logp = top_k_filter(logp, top_k)
+        probs = softmax(logp)
+        token = _sample_from(probs, rng)
+        if token == eos:
+            break
+        generated.append(token)
+        context.append(token)
+    return generated
+
+
+def _sample_from(probs: Sequence[float], rng: Rng) -> int:
+    target = rng.random()
+    acc = 0.0
+    for token, p in enumerate(probs):
+        acc += p
+        if acc >= target:
+            return token
+    return len(probs) - 1
