@@ -12,7 +12,27 @@ from ._random import Rng
 from .llm import LanguageModel
 from .mathx import softmax
 
-__all__ = ["greedy_decode", "sample_decode", "beam_search", "top_k_filter"]
+__all__ = [
+    "greedy_decode",
+    "sample_decode",
+    "beam_search",
+    "top_k_filter",
+    "StopCriteria",
+]
+
+
+class StopCriteria:
+    """解码停止条件：命中任一 stop token 或达到最大长度。"""
+
+    def __init__(self, eos: int, max_new_tokens: int, stop_tokens: Sequence[int] = ()) -> None:
+        self.max_new_tokens = max_new_tokens
+        self._stops = {eos, *stop_tokens}
+
+    def is_stop_token(self, token: int) -> bool:
+        return token in self._stops
+
+    def reached_limit(self, n_generated: int) -> bool:
+        return n_generated >= self.max_new_tokens
 
 
 def _argmax(values: Sequence[float]) -> int:
