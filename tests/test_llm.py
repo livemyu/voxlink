@@ -20,10 +20,18 @@ def test_ngram_overfits_toy_corpus() -> None:
     assert max(range(5), key=lambda i: lp[i]) == 3
 
 
-def test_uniform_when_unseen() -> None:
-    lm = NgramLM(4, ModelConfig(order=2)).fit([[0, 1]])
-    # 前缀 [3] 从未作为上下文出现 -> 回退到均匀
+def test_backoff_to_unigram_when_context_unseen() -> None:
+    # 上下文 [3] 从未出现 -> 回退到一元分布（而非均匀）。
+    lm = NgramLM(4, ModelConfig(order=2)).fit([[0, 1, 1, 1]])
     lp = lm.logprobs([3])
+    # 训练中 token 1 出现最多，一元回退下应排第一
+    assert max(range(4), key=lambda i: lp[i]) == 1
+
+
+def test_uniform_without_training() -> None:
+    # 完全未训练时，空上下文也未见 -> 均匀分布
+    lm = NgramLM(4, ModelConfig(order=2))
+    lp = lm.logprobs([])
     assert all(abs(x - lp[0]) < 1e-9 for x in lp)
 
 
