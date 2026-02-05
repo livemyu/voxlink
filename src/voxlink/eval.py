@@ -32,3 +32,24 @@ def levenshtein(ref: Sequence[str], hyp: Sequence[str]) -> int:
             )
         prev = curr
     return prev[m]
+
+
+def wer(reference: str, hypothesis: str) -> float:
+    """词错误率：词级编辑距离 / 参考词数。
+
+    参考为空时，假设也为空则 WER=0，否则 WER=1。
+    """
+    ref_words = word_tokenize(reference)
+    hyp_words = word_tokenize(hypothesis)
+    if not ref_words:
+        return 0.0 if not hyp_words else 1.0
+    return levenshtein(ref_words, hyp_words) / len(ref_words)
+
+
+def cer(reference: str, hypothesis: str) -> float:
+    """字错误率：字符级编辑距离 / 参考字符数。"""
+    ref_chars = char_tokenize(reference)
+    hyp_chars = char_tokenize(hypothesis)
+    if not ref_chars:
+        return 0.0 if not hyp_chars else 1.0
+    return levenshtein(ref_chars, hyp_chars) / len(ref_chars)
