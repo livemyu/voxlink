@@ -7,10 +7,11 @@ CER 在字符级计算，后者更适合中文等无显式分词的语言。
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from .text import char_tokenize, word_tokenize
 
-__all__ = ["levenshtein", "wer", "cer"]
+__all__ = ["levenshtein", "wer", "cer", "CorpusMetrics", "corpus_metrics"]
 
 
 def levenshtein(ref: Sequence[str], hyp: Sequence[str]) -> int:
@@ -53,3 +54,36 @@ def cer(reference: str, hypothesis: str) -> float:
     if not ref_chars:
         return 0.0 if not hyp_chars else 1.0
     return levenshtein(ref_chars, hyp_chars) / len(ref_chars)
+
+
+@dataclass(frozen=True)
+class CorpusMetrics:
+    """整个语料上的聚合指标。"""
+
+    wer: float
+    cer: float
+    num_utts: int
+    ref_words: int
+    ref_chars: int
+
+
+def corpus_metrics(references: Sequence[str], hypotheses: Sequence[str]) -> CorpusMetrics:
+    """在语料级聚合 WER/CER（按总编辑数 / 总长度，而非样本平均）。"""
+    if len(references) != len(hypotheses):
+        raise ValueError("参考与假设数量不一致")
+    tot_word_err = tot_words = 0
+    tot_char_err = tot_chars = 0
+    for ref, hyp in zip(references, hypotheses, strict=True):
+        rw, hw = word_tokenize(ref), word_tokenize(hyp)
+        rc, hc = char_tokenize(ref), char_tokenize(hyp)
+        tot_word_err += levenshtein(rw, hw)
+        tot_words += len(rw)
+        tot_char_err += levenshtein(rc, hc)
+        tot_chars += len(rc)
+    return CorpusMetrics(
+        wer=tot_word_err / tot_words if tot_words else 0.0,
+        cer=tot_char_err / tot_chars if tot_chars else 0.0,
+        num_utts=len(references),
+        ref_words=tot_words,
+        ref_chars=tot_chars,
+    )
