@@ -6,10 +6,10 @@
 
 from __future__ import annotations
 
+from ._random import Rng
 from .exceptions import ModelError
 from .linalg import mean, sq_euclidean
-from .types import Matrix, Vector
-from ._random import Rng
+from .types import Matrix
 
 __all__ = ["KMeans"]
 
@@ -103,9 +103,7 @@ class KMeans:
     def fit(self, data: Matrix) -> KMeans:
         """在 ``data``（形状 ``(n_samples, n_dims)``）上拟合。"""
         if len(data) < self.n_clusters:
-            raise ModelError(
-                f"样本数 {len(data)} 少于簇数 {self.n_clusters}"
-            )
+            raise ModelError(f"样本数 {len(data)} 少于簇数 {self.n_clusters}")
         rng = Rng(self.seed)
         centers = _kmeans_plus_plus(data, self.n_clusters, rng)
         prev = float("inf")

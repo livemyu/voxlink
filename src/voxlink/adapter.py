@@ -65,9 +65,7 @@ class UnitEmbedding:
         self.dim = dim
         rng = Rng(seed)
         scale = (1.0 / dim) ** 0.5
-        self.table: Matrix = [
-            [rng.gauss(0.0, scale) for _ in range(dim)] for _ in range(n_units)
-        ]
+        self.table: Matrix = [[rng.gauss(0.0, scale) for _ in range(dim)] for _ in range(n_units)]
 
     def lookup(self, unit: int) -> Vector:
         if not 0 <= unit < self.n_units:
