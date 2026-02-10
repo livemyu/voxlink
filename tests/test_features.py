@@ -4,7 +4,7 @@ import math
 from voxlink.config import FrontendConfig
 from voxlink.dct import dct2
 from voxlink.features import Frontend, log_mel_spectrogram, mfcc
-from voxlink.fft import dft, fft, rfft_power
+from voxlink.fft import dft, fft
 from voxlink.melbank import hz_to_mel, mel_filterbank, mel_to_hz
 from voxlink.types import Waveform
 
