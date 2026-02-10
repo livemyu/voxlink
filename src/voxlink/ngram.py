@@ -139,9 +139,7 @@ class NgramLM:
         # 上下文元组用空格连接的字符串作为 key（空上下文为 ""）
         tables = []
         for table in self._counts:
-            flat = {
-                " ".join(map(str, ctx)): dict(bucket.items()) for ctx, bucket in table.items()
-            }
+            flat = {" ".join(map(str, ctx)): dict(bucket.items()) for ctx, bucket in table.items()}
             tables.append(flat)
         return {
             "vocab_size": self._vocab_size,
@@ -152,8 +150,12 @@ class NgramLM:
     @classmethod
     def from_dict(cls, payload: dict[str, object]) -> NgramLM:
         """从 :meth:`to_dict` 的结果重建模型。"""
-        config = ModelConfig(**payload["config"])  # type: ignore[arg-type]
-        model = cls(int(payload["vocab_size"]), config)  # type: ignore[arg-type]
+        raw_config = payload["config"]
+        assert isinstance(raw_config, dict)
+        config = ModelConfig(**raw_config)
+        vocab_size = payload["vocab_size"]
+        assert isinstance(vocab_size, int)
+        model = cls(vocab_size, config)
         tables = payload["counts"]
         assert isinstance(tables, list)
         for n, flat in enumerate(tables):
