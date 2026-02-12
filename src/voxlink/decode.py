@@ -13,11 +13,11 @@ from .llm import LanguageModel
 from .mathx import softmax
 
 __all__ = [
+    "StopCriteria",
+    "beam_search",
     "greedy_decode",
     "sample_decode",
-    "beam_search",
     "top_k_filter",
-    "StopCriteria",
 ]
 
 
@@ -151,5 +151,5 @@ def beam_search(
 def _beam_priority(beam: tuple[list[int], float, bool], length_penalty: float) -> float:
     tokens, score, _ = beam
     if length_penalty and tokens:
-        return score / (len(tokens) ** length_penalty)
+        return score / float(len(tokens) ** length_penalty)
     return score
