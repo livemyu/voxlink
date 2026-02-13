@@ -13,7 +13,7 @@ import math
 from ._random import Rng
 from .types import Utterance, Vector, Waveform
 
-__all__ = ["synth_word", "synth_utterance", "WORDS"]
+__all__ = ["synth_word", "synth_utterance", "synth_corpus", "WORDS"]
 
 # 一组玩具「词」，各自对应一个基频，方便前端区分。
 WORDS: dict[str, float] = {
@@ -54,3 +54,30 @@ def synth_word(word: str, sample_rate: int = 16000, duration: float = 0.2) -> Ve
         val += 0.02 * rng.gauss()
         out.append(val)
     return out
+
+
+def synth_utterance(
+    words: list[str],
+    *,
+    sample_rate: int = 16000,
+    word_duration: float = 0.2,
+    gap: float = 0.05,
+) -> Utterance:
+    """把若干词的合成音频拼接成一条话语，文本为空格连接的词。"""
+    gap_samples = [0.0] * int(sample_rate * gap)
+    samples: Vector = []
+    for i, w in enumerate(words):
+        if i > 0:
+            samples.extend(gap_samples)
+        samples.extend(synth_word(w, sample_rate, word_duration))
+    text = " ".join(words)
+    return Utterance(audio=Waveform(samples, sample_rate), text=text)
+
+
+def synth_corpus(
+    sentences: list[list[str]],
+    *,
+    sample_rate: int = 16000,
+) -> list[Utterance]:
+    """为一组句子（词列表）批量合成话语。"""
+    return [synth_utterance(s, sample_rate=sample_rate) for s in sentences]
