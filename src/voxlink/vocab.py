@@ -10,7 +10,7 @@ from __future__ import annotations
 from .exceptions import ModelError
 from .io_utils import read_json, write_json
 
-__all__ = ["Vocab", "SpecialTokens", "build_joint_vocab"]
+__all__ = ["SpecialTokens", "Vocab", "build_joint_vocab"]
 
 
 class SpecialTokens:

@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 from .text import char_tokenize, word_tokenize
 
-__all__ = ["levenshtein", "wer", "cer", "CorpusMetrics", "corpus_metrics"]
+__all__ = ["CorpusMetrics", "cer", "corpus_metrics", "levenshtein", "wer"]
 
 
 def levenshtein(ref: Sequence[str], hyp: Sequence[str]) -> int:

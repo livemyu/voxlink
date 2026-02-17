@@ -15,12 +15,12 @@ from .linalg import l2_norm
 from .types import FeatureMatrix, Matrix, Vector, Waveform
 
 __all__ = [
-    "SpeechEncoder",
     "MFCCEncoder",
-    "mean_pool",
-    "max_pool",
-    "stack_frames",
+    "SpeechEncoder",
     "l2_normalize",
+    "max_pool",
+    "mean_pool",
+    "stack_frames",
 ]
 
 
