@@ -35,3 +35,47 @@ class TaskSpec:
 ASR = TaskSpec(name="asr", needs_text=False)
 QA = TaskSpec(name="qa", needs_text=True)
 INSTRUCT = TaskSpec(name="instruct", needs_text=True)
+
+
+class PromptBuilder:
+    """把语音单元与任务指令组织成语言模型的输入 token id 序列。
+
+    约定的模板（token 字面量）：
+
+        <bos> <task> u_i u_j ... [ 文本 token ... ] <eos>
+
+    其中末尾的 ``<eos>`` 只作为「提示结束、答案开始」的分隔；生成阶段模型在
+    它之后继续输出答案 token。
+    """
+
+    def __init__(self, vocab: Vocab) -> None:
+        self.vocab = vocab
+
+    def unit_token(self, unit: int) -> str:
+        return f"u_{unit}"
+
+    def build(
+        self,
+        units: list[int],
+        task: TaskSpec,
+        text: str = "",
+    ) -> list[int]:
+        """构造提示 token id 序列。"""
+        tokens: list[str] = [SpecialTokens.BOS, task.token()]
+        tokens.extend(self.unit_token(u) for u in units)
+        if task.needs_text:
+            if not text:
+                raise ValueError(f"任务 {task.name} 需要文本输入")
+            tokens.extend(word_tokenize(text))
+        tokens.append(SpecialTokens.EOS)
+        return self.vocab.encode(tokens)
+
+    def decode_answer(self, ids: list[int]) -> str:
+        """把答案 token id 还原为文本，跳过特殊符号与语音单元。"""
+        words = []
+        for i in ids:
+            tok = self.vocab.token(i)
+            if tok in SpecialTokens.ALL or tok.startswith("u_") or tok.startswith("<"):
+                continue
+            words.append(tok)
+        return " ".join(words)
