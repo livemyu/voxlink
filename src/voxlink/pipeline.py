@@ -16,10 +16,13 @@
 
 from __future__ import annotations
 
+import os
+
 from .config import FrontendConfig, ModelConfig, UnitConfig
 from .decode import beam_search, greedy_decode
 from .exceptions import ModelError
 from .features import Frontend
+from .io_utils import read_json, write_json
 from .ngram import NgramLM
 from .prompt import ASR, INSTRUCT, QA, PromptBuilder, TaskSpec
 from .text import word_tokenize
@@ -171,3 +174,29 @@ class SpeechLMPipeline:
     ) -> list[str]:
         """批量转写。"""
         return [self.transcribe(w, max_new_tokens=max_new_tokens) for w in waves]
+
+    # -- 持久化 --------------------------------------------------------------
+
+    def save(self, directory: str) -> None:
+        """把码本、词表与语言模型保存到目录。"""
+        if self.vocab is None or self.lm is None:
+            raise ModelError("管线尚未训练，无法保存")
+        os.makedirs(directory, exist_ok=True)
+        self.quantizer.save(os.path.join(directory, "codebook.json"))
+        self.vocab.save(os.path.join(directory, "vocab.json"))
+        self.lm.save(os.path.join(directory, "lm.json"))
+        write_json(
+            os.path.join(directory, "frontend.json"), self.frontend.config.to_dict()
+        )
+
+    @classmethod
+    def from_pretrained(cls, directory: str) -> SpeechLMPipeline:
+        """从 :meth:`save` 保存的目录恢复管线。"""
+        frontend_cfg = FrontendConfig(**read_json(os.path.join(directory, "frontend.json")))
+        pipe = cls(frontend_cfg)
+        pipe.quantizer = Quantizer.load(os.path.join(directory, "codebook.json"))
+        pipe.vocab = Vocab.load(os.path.join(directory, "vocab.json"))
+        pipe.lm = NgramLM.load(os.path.join(directory, "lm.json"))
+        pipe.model_config = pipe.lm.config
+        pipe._prompt = PromptBuilder(pipe.vocab)
+        return pipe
