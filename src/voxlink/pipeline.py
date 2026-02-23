@@ -61,3 +61,52 @@ class SpeechLMPipeline:
             raise ModelError("管线尚未训练：码本缺失")
         feats = self.frontend(wave)
         return self.quantizer.encode(feats)
+
+    # -- 训练 ----------------------------------------------------------------
+
+    def fit(
+        self,
+        utterances: list[Utterance],
+        *,
+        task: TaskSpec = ASR,
+    ) -> SpeechLMPipeline:
+        """在成对的（音频, 文本）数据上训练码本、词表与语言模型。"""
+        if not utterances:
+            raise ModelError("训练集为空")
+
+        # 1) 训练码本：汇集所有特征帧
+        all_frames = []
+        feat_cache = []
+        for utt in utterances:
+            fm = self.frontend(utt.audio)
+            feat_cache.append(fm)
+            all_frames.extend(fm.frames)
+        self.quantizer.fit(all_frames)
+
+        # 2) 构造联合词表：语音单元 + 文本词 + 任务标记
+        text_words: list[str] = []
+        for utt in utterances:
+            text_words.extend(word_tokenize(utt.text))
+        task_tokens = [spec.token() for spec in self._tasks.values()]
+        self.vocab = build_joint_vocab(
+            self.quantizer.n_units, text_words, task_tokens=task_tokens
+        )
+        self._prompt = PromptBuilder(self.vocab)
+
+        # 3) 拼「提示 + 目标文本」，训练 n-gram 语言模型
+        self.lm = NgramLM(len(self.vocab), self.model_config)
+        sequences = []
+        for utt, fm in zip(utterances, feat_cache, strict=True):
+            units = self.quantizer.encode(fm)
+            prompt_ids = self._prompt.build(units, task, self._task_text(task, utt))
+            answer_ids = self.vocab.encode([*word_tokenize(utt.text), SpecialTokens.EOS])
+            sequences.append(prompt_ids + answer_ids)
+        self.lm.fit(sequences)
+        return self
+
+    @staticmethod
+    def _task_text(task: TaskSpec, utt: Utterance) -> str:
+        """QA / 指令任务从 meta 里取问题 / 指令文本。"""
+        if not task.needs_text:
+            return ""
+        return utt.meta.get("prompt", "")
