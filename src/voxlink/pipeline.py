@@ -28,3 +28,36 @@ from .units import Quantizer
 from .vocab import SpecialTokens, Vocab, build_joint_vocab
 
 __all__ = ["SpeechLMPipeline"]
+
+
+class SpeechLMPipeline:
+    """语音接入语言模型的端到端管线。
+
+    Args:
+        frontend_config: 特征前端配置。
+        unit_config: 离散单元（k-means）配置。
+        model_config: 语言模型（n-gram）配置。
+    """
+
+    def __init__(
+        self,
+        frontend_config: FrontendConfig | None = None,
+        unit_config: UnitConfig | None = None,
+        model_config: ModelConfig | None = None,
+    ) -> None:
+        self.frontend = Frontend(frontend_config or FrontendConfig())
+        self.quantizer = Quantizer(unit_config or UnitConfig())
+        self.model_config = model_config or ModelConfig()
+        self.vocab: Vocab | None = None
+        self.lm: NgramLM | None = None
+        self._prompt: PromptBuilder | None = None
+        self._tasks: dict[str, TaskSpec] = {"asr": ASR, "qa": QA, "instruct": INSTRUCT}
+
+    # -- 语音侧 --------------------------------------------------------------
+
+    def encode_units(self, wave: Waveform) -> list[int]:
+        """把波形编码为离散语音单元序列。"""
+        if not self.quantizer.is_fitted:
+            raise ModelError("管线尚未训练：码本缺失")
+        feats = self.frontend(wave)
+        return self.quantizer.encode(feats)
