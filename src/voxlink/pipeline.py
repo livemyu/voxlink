@@ -110,3 +110,49 @@ class SpeechLMPipeline:
         if not task.needs_text:
             return ""
         return utt.meta.get("prompt", "")
+
+    # -- 推理 ----------------------------------------------------------------
+
+    def _generate(
+        self,
+        wave: Waveform,
+        task: TaskSpec,
+        text: str,
+        *,
+        max_new_tokens: int,
+        beam_size: int,
+    ) -> str:
+        if self.lm is None or self.vocab is None or self._prompt is None:
+            raise ModelError("管线尚未训练")
+        units = self.encode_units(wave)
+        prompt_ids = self._prompt.build(units, task, text)
+        eos = self.vocab.id(SpecialTokens.EOS)
+        if beam_size > 1:
+            answer = beam_search(
+                self.lm, prompt_ids, max_new_tokens, eos, beam_size=beam_size
+            )
+        else:
+            answer = greedy_decode(self.lm, prompt_ids, max_new_tokens, eos)
+        return self._prompt.decode_answer(answer)
+
+    def transcribe(self, wave: Waveform, *, max_new_tokens: int = 32, beam_size: int = 1) -> str:
+        """语音转写（ASR）。"""
+        return self._generate(
+            wave, ASR, "", max_new_tokens=max_new_tokens, beam_size=beam_size
+        )
+
+    def answer(
+        self, wave: Waveform, question: str, *, max_new_tokens: int = 32, beam_size: int = 1
+    ) -> str:
+        """语音问答：给定语音与问题，生成答案。"""
+        return self._generate(
+            wave, QA, question, max_new_tokens=max_new_tokens, beam_size=beam_size
+        )
+
+    def follow(
+        self, wave: Waveform, instruction: str, *, max_new_tokens: int = 32, beam_size: int = 1
+    ) -> str:
+        """语音到文本的指令跟随。"""
+        return self._generate(
+            wave, INSTRUCT, instruction, max_new_tokens=max_new_tokens, beam_size=beam_size
+        )
