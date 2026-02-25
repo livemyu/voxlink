@@ -156,3 +156,18 @@ class SpeechLMPipeline:
         return self._generate(
             wave, INSTRUCT, instruction, max_new_tokens=max_new_tokens, beam_size=beam_size
         )
+
+    def understand(self, wave: Waveform, query: str = "", *, max_new_tokens: int = 16) -> str:
+        """语音理解：可带查询，返回模型对语音内容的文本判断。
+
+        无查询时退化为转写；有查询时走问答模板。
+        """
+        if query:
+            return self.answer(wave, query, max_new_tokens=max_new_tokens)
+        return self.transcribe(wave, max_new_tokens=max_new_tokens)
+
+    def transcribe_batch(
+        self, waves: list[Waveform], *, max_new_tokens: int = 32
+    ) -> list[str]:
+        """批量转写。"""
+        return [self.transcribe(w, max_new_tokens=max_new_tokens) for w in waves]
