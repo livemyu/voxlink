@@ -91,9 +91,7 @@ class SpeechLMPipeline:
         for utt in utterances:
             text_words.extend(word_tokenize(utt.text))
         task_tokens = [spec.token() for spec in self._tasks.values()]
-        self.vocab = build_joint_vocab(
-            self.quantizer.n_units, text_words, task_tokens=task_tokens
-        )
+        self.vocab = build_joint_vocab(self.quantizer.n_units, text_words, task_tokens=task_tokens)
         self._prompt = PromptBuilder(self.vocab)
 
         # 3) 拼「提示 + 目标文本」，训练 n-gram 语言模型
@@ -131,18 +129,14 @@ class SpeechLMPipeline:
         prompt_ids = self._prompt.build(units, task, text)
         eos = self.vocab.id(SpecialTokens.EOS)
         if beam_size > 1:
-            answer = beam_search(
-                self.lm, prompt_ids, max_new_tokens, eos, beam_size=beam_size
-            )
+            answer = beam_search(self.lm, prompt_ids, max_new_tokens, eos, beam_size=beam_size)
         else:
             answer = greedy_decode(self.lm, prompt_ids, max_new_tokens, eos)
         return self._prompt.decode_answer(answer)
 
     def transcribe(self, wave: Waveform, *, max_new_tokens: int = 32, beam_size: int = 1) -> str:
         """语音转写（ASR）。"""
-        return self._generate(
-            wave, ASR, "", max_new_tokens=max_new_tokens, beam_size=beam_size
-        )
+        return self._generate(wave, ASR, "", max_new_tokens=max_new_tokens, beam_size=beam_size)
 
     def answer(
         self, wave: Waveform, question: str, *, max_new_tokens: int = 32, beam_size: int = 1
@@ -169,9 +163,7 @@ class SpeechLMPipeline:
             return self.answer(wave, query, max_new_tokens=max_new_tokens)
         return self.transcribe(wave, max_new_tokens=max_new_tokens)
 
-    def transcribe_batch(
-        self, waves: list[Waveform], *, max_new_tokens: int = 32
-    ) -> list[str]:
+    def transcribe_batch(self, waves: list[Waveform], *, max_new_tokens: int = 32) -> list[str]:
         """批量转写。"""
         return [self.transcribe(w, max_new_tokens=max_new_tokens) for w in waves]
 
@@ -185,9 +177,7 @@ class SpeechLMPipeline:
         self.quantizer.save(os.path.join(directory, "codebook.json"))
         self.vocab.save(os.path.join(directory, "vocab.json"))
         self.lm.save(os.path.join(directory, "lm.json"))
-        write_json(
-            os.path.join(directory, "frontend.json"), self.frontend.config.to_dict()
-        )
+        write_json(os.path.join(directory, "frontend.json"), self.frontend.config.to_dict())
 
     @classmethod
     def from_pretrained(cls, directory: str) -> SpeechLMPipeline:
