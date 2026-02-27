@@ -14,6 +14,7 @@ from .exceptions import (
     ModelError,
     VoxlinkError,
 )
+from .pipeline import SpeechLMPipeline
 from .types import FeatureMatrix, Utterance, Waveform
 
 __version__ = "0.1.0"
@@ -26,6 +27,7 @@ __all__ = [
     "FrontendConfig",
     "ModelConfig",
     "ModelError",
+    "SpeechLMPipeline",
     "UnitConfig",
     "Utterance",
     "VoxlinkError",
