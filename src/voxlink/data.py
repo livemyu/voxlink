@@ -13,7 +13,7 @@ import math
 from ._random import Rng
 from .types import Utterance, Vector, Waveform
 
-__all__ = ["synth_word", "synth_utterance", "synth_corpus", "WORDS"]
+__all__ = ["WORDS", "synth_corpus", "synth_utterance", "synth_word"]
 
 # 一组玩具「词」，各自对应一个基频，方便前端区分。
 WORDS: dict[str, float] = {

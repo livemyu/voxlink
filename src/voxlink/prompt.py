@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from .text import word_tokenize
 from .vocab import SpecialTokens, Vocab
 
-__all__ = ["TaskSpec", "PromptBuilder", "ASR", "QA", "INSTRUCT"]
+__all__ = ["ASR", "INSTRUCT", "QA", "PromptBuilder", "TaskSpec"]
 
 
 @dataclass(frozen=True)
