@@ -16,6 +16,7 @@ from .features import Frontend
 from .io_utils import read_jsonl, write_json
 from .logging_ import configure, get_logger
 from .pipeline import SpeechLMPipeline
+from .types import Utterance
 
 __all__ = ["build_parser", "main"]
 
@@ -32,7 +33,7 @@ _DEMO_SENTENCES = [
 ]
 
 
-def _demo_pipeline() -> tuple[SpeechLMPipeline, list]:
+def _demo_pipeline() -> tuple[SpeechLMPipeline, list[Utterance]]:
     utts = [synth_utterance(s) for s in _DEMO_SENTENCES]
     pipe = SpeechLMPipeline(
         FrontendConfig(n_mels=40, n_mfcc=13),
