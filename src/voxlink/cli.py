@@ -77,6 +77,44 @@ def _cmd_transcribe(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_units(args: argparse.Namespace) -> int:
+    from .audio import load_wav
+
+    pipe = SpeechLMPipeline.from_pretrained(args.model)
+    wave = load_wav(args.audio)
+    units = pipe.encode_units(wave)
+    print(" ".join(map(str, units)))
+    return 0
+
+
+def _cmd_qa(args: argparse.Namespace) -> int:
+    from .audio import load_wav
+
+    pipe = SpeechLMPipeline.from_pretrained(args.model)
+    wave = load_wav(args.audio)
+    print(pipe.answer(wave, args.question, max_new_tokens=args.max_new_tokens))
+    return 0
+
+
+def _cmd_train(args: argparse.Namespace) -> int:
+    configure()
+    if args.manifest:
+        from .dataset import load_manifest
+
+        utts = load_manifest(args.manifest)
+    else:
+        _LOG.info("未提供 manifest，使用内置合成语料训练")
+        utts = [synth_utterance(s) for s in _DEMO_SENTENCES]
+    pipe = SpeechLMPipeline(
+        FrontendConfig(n_mfcc=args.n_mfcc),
+        UnitConfig(n_units=args.n_units, seed=args.seed),
+        ModelConfig(order=args.order, smoothing=args.smoothing),
+    ).fit(utts)
+    pipe.save(args.out)
+    _LOG.info("模型已保存到 %s（词表大小 %d）", args.out, len(pipe.vocab) if pipe.vocab else 0)
+    return 0
+
+
 def _cmd_eval(args: argparse.Namespace) -> int:
     pipe = SpeechLMPipeline.from_pretrained(args.model)
     from .audio import load_wav
@@ -116,6 +154,28 @@ def build_parser() -> argparse.ArgumentParser:
     p_tr.add_argument("--max-new-tokens", type=int, default=32)
     p_tr.add_argument("--beam", type=int, default=1, help="beam 宽度（1 为贪心）")
     p_tr.set_defaults(handler=_cmd_transcribe)
+
+    p_train = sub.add_parser("train", help="训练码本+词表+语言模型并保存")
+    p_train.add_argument("--manifest", default="", help="JSONL manifest（缺省用合成语料）")
+    p_train.add_argument("--out", required=True, help="模型输出目录")
+    p_train.add_argument("--n-units", type=int, default=24)
+    p_train.add_argument("--n-mfcc", type=int, default=13)
+    p_train.add_argument("--order", type=int, default=4)
+    p_train.add_argument("--smoothing", type=float, default=0.001)
+    p_train.add_argument("--seed", type=int, default=0)
+    p_train.set_defaults(handler=_cmd_train)
+
+    p_units = sub.add_parser("units", help="打印一段音频的离散语音单元")
+    p_units.add_argument("audio", help="输入 WAV 路径")
+    p_units.add_argument("--model", required=True, help="模型目录")
+    p_units.set_defaults(handler=_cmd_units)
+
+    p_qa = sub.add_parser("qa", help="语音问答")
+    p_qa.add_argument("audio", help="输入 WAV 路径")
+    p_qa.add_argument("question", help="问题文本")
+    p_qa.add_argument("--model", required=True, help="模型目录")
+    p_qa.add_argument("--max-new-tokens", type=int, default=32)
+    p_qa.set_defaults(handler=_cmd_qa)
 
     p_ev = sub.add_parser("eval", help="在 manifest 上评估 WER/CER")
     p_ev.add_argument("manifest", help="JSONL manifest 路径")
