@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 from ._random import Rng
+from .backends import Backend, get_backend
 from .exceptions import ModelError
 from .linalg import mean, sq_euclidean
 from .types import Matrix
@@ -54,6 +55,21 @@ def _assign(data: Matrix, centers: Matrix) -> list[int]:
     return labels
 
 
+def _assign_backend(data: Matrix, centers: Matrix, backend: Backend) -> list[int]:
+    """用后端的成对距离批量分配（numpy 后端下会向量化）。"""
+    dist = backend.pairwise_sq_dist(data, centers)
+    labels = []
+    for row in dist:
+        best = 0
+        best_d = row[0]
+        for j in range(1, len(row)):
+            if row[j] < best_d:
+                best_d = row[j]
+                best = j
+        labels.append(best)
+    return labels
+
+
 def _update(data: Matrix, labels: list[int], k: int, rng: Rng) -> Matrix:
     """根据分配重算中心；空簇用随机点重初始化。"""
     buckets: list[Matrix] = [[] for _ in range(k)]
@@ -89,6 +105,7 @@ class KMeans:
         max_iters: int = 50,
         tol: float = 1e-4,
         seed: int = 0,
+        use_backend: bool = True,
     ) -> None:
         if n_clusters < 1:
             raise ModelError("n_clusters 至少为 1")
@@ -96,9 +113,15 @@ class KMeans:
         self.max_iters = max_iters
         self.tol = tol
         self.seed = seed
+        self._backend: Backend | None = get_backend() if use_backend else None
         self.centers: Matrix | None = None
         self.n_iter_: int = 0
         self.inertia_: float = 0.0
+
+    def _assign(self, data: Matrix, centers: Matrix) -> list[int]:
+        if self._backend is not None:
+            return _assign_backend(data, centers, self._backend)
+        return _assign(data, centers)
 
     def fit(self, data: Matrix) -> KMeans:
         """在 ``data``（形状 ``(n_samples, n_dims)``）上拟合。"""
@@ -108,7 +131,7 @@ class KMeans:
         centers = _kmeans_plus_plus(data, self.n_clusters, rng)
         prev = float("inf")
         for it in range(1, self.max_iters + 1):
-            labels = _assign(data, centers)
+            labels = self._assign(data, centers)
             centers = _update(data, labels, self.n_clusters, rng)
             inertia = _inertia(data, centers, labels)
             self.n_iter_ = it
@@ -124,4 +147,4 @@ class KMeans:
         """给出每个样本的簇标签。"""
         if self.centers is None:
             raise ModelError("KMeans 尚未拟合")
-        return _assign(data, self.centers)
+        return self._assign(data, self.centers)
