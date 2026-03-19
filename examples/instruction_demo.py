@@ -35,7 +35,7 @@ def main() -> None:
     ).fit(utts, task=INSTRUCT)
 
     print("=== 指令跟随 ===")
-    for (words, instr, target), u in zip(SAMPLES, utts, strict=True):
+    for (words, instr, _target), u in zip(SAMPLES, utts, strict=True):
         out = pipe.follow(u.audio, instr, max_new_tokens=8)
         print(f"  指令={instr:10} 语音={'/'.join(words):18} -> {out!r}")
 
