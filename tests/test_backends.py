@@ -1,10 +1,10 @@
+from voxlink._compat import has_numpy
 from voxlink.backends import (
     NumpyBackend,
     PurePythonBackend,
     available_backends,
     get_backend,
 )
-from voxlink._compat import has_numpy
 
 
 def test_pure_python_backend_always_available() -> None:
