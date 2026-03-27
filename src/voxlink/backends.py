@@ -13,10 +13,10 @@ from .types import Matrix
 
 __all__ = [
     "Backend",
-    "PurePythonBackend",
     "NumpyBackend",
-    "get_backend",
+    "PurePythonBackend",
     "available_backends",
+    "get_backend",
 ]
 
 
