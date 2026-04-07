@@ -53,7 +53,9 @@ def synth_word(word: str, sample_rate: int = 16000, duration: float = 0.2) -> Ve
         )
         val += 0.02 * rng.gauss()
         out.append(val)
-    return out
+    # 三个谐波叠加后峰值可能略超 1.0，统一缩放到 0.9 以避免写 WAV 时被削顶
+    peak = max((abs(v) for v in out), default=1.0) or 1.0
+    return [0.9 * v / peak for v in out]
 
 
 def synth_utterance(
