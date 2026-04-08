@@ -80,6 +80,7 @@ def resample(samples: Vector, src_rate: int, dst_rate: int) -> Vector:
     这是一个轻量参考实现，未做抗混叠滤波；对特征提取前的采样率对齐足够，
     对高保真场景应换用带 sinc 滤波的实现。
     """
+    # TODO: 上采样时补一个低通滤波以抑制镜像分量
     if src_rate <= 0 or dst_rate <= 0:
         raise ValueError("采样率必须为正")
     if src_rate == dst_rate or not samples:
