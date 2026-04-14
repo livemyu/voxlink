@@ -83,3 +83,14 @@ def matmul(a: Matrix, b: Matrix) -> Matrix:
 def matvec(m: Matrix, v: Sequence[float]) -> Vector:
     """矩阵乘向量 ``m @ v``。"""
     return [dot(row, v) for row in m]
+
+
+def argmax(values: Sequence[float]) -> int:
+    """返回最大元素的下标（并列取最小下标）。"""
+    if not values:
+        raise ValueError("不能对空序列取 argmax")
+    best = 0
+    for i in range(1, len(values)):
+        if values[i] > values[best]:
+            best = i
+    return best
