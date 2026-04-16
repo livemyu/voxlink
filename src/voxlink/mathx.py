@@ -33,3 +33,16 @@ def log_softmax(scores: Sequence[float]) -> Vector:
     """对数域 softmax。"""
     lse = logsumexp(scores)
     return [s - lse for s in scores]
+
+
+def sample_categorical(probs: Sequence[float], u: float) -> int:
+    """给定 ``[0,1)`` 的均匀样本 ``u``，按分类分布 ``probs`` 取样返回下标。
+
+    把采样与随机源解耦，方便在不同调用点复用同一份逆变换采样逻辑。
+    """
+    acc = 0.0
+    for token, p in enumerate(probs):
+        acc += p
+        if acc >= u:
+            return token
+    return len(probs) - 1
