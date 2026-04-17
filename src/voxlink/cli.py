@@ -14,7 +14,7 @@ from .data import synth_utterance
 from .eval import corpus_metrics
 from .features import Frontend
 from .io_utils import read_jsonl, write_json
-from .logging_ import configure, get_logger
+from .logsetup import configure, get_logger
 from .pipeline import SpeechLMPipeline
 from .types import Utterance
 
