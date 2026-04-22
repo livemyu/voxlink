@@ -2,8 +2,6 @@ from voxlink._random import Rng
 
 
 def test_rng_is_reproducible() -> None:
-    a = [Rng(42).random() for _ in range(5)]
-    b = [Rng(42).random() for _ in range(5)]
     # 两个同种子生成器的第一个抽样应一致
     assert Rng(42).random() == Rng(42).random()
     # 序列可复现

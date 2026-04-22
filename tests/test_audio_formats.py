@@ -3,10 +3,10 @@ import math
 import pytest
 
 from voxlink.audio import float_to_pcm, load_wav, pcm_to_float, save_wav
+from voxlink.config import FrontendConfig
 from voxlink.dsp import resample
 from voxlink.exceptions import AudioError
 from voxlink.features import power_spectrogram
-from voxlink.config import FrontendConfig
 from voxlink.types import Waveform
 
 
