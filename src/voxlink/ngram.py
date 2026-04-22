@@ -15,7 +15,7 @@ from ._random import Rng
 from .config import ModelConfig
 from .exceptions import ModelError
 from .io_utils import read_json, write_json
-from .mathx import softmax
+from .mathx import sample_categorical, softmax
 
 __all__ = ["NgramLM"]
 
@@ -126,13 +126,7 @@ class NgramLM:
         if temperature != 1.0:
             logp = [lp / temperature for lp in logp]
         probs = softmax(logp)
-        target = rng.random()
-        acc = 0.0
-        for token, p in enumerate(probs):
-            acc += p
-            if acc >= target:
-                return token
-        return len(probs) - 1
+        return sample_categorical(probs, rng.random())
 
     def to_dict(self) -> dict[str, object]:
         """把模型序列化为可 JSON 化的字典。"""
