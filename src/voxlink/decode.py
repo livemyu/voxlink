@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ._random import Rng
+from .linalg import argmax
 from .llm import LanguageModel
 from .mathx import softmax
 
@@ -35,14 +36,6 @@ class StopCriteria:
         return n_generated >= self.max_new_tokens
 
 
-def _argmax(values: Sequence[float]) -> int:
-    best = 0
-    for i in range(1, len(values)):
-        if values[i] > values[best]:
-            best = i
-    return best
-
-
 def greedy_decode(
     model: LanguageModel,
     prompt: Sequence[int],
@@ -53,7 +46,7 @@ def greedy_decode(
     generated: list[int] = []
     context = list(prompt)
     for _ in range(max_new_tokens):
-        token = _argmax(model.logprobs(context))
+        token = argmax(model.logprobs(context))
         if token == eos:
             break
         generated.append(token)
