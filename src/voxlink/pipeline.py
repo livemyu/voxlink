@@ -62,6 +62,8 @@ class SpeechLMPipeline:
         """把波形编码为离散语音单元序列。"""
         if not self.quantizer.is_fitted:
             raise ModelError("管线尚未训练：码本缺失")
+        if wave.num_samples == 0:
+            raise ModelError("输入音频为空")
         feats = self.frontend(wave)
         return self.quantizer.encode(feats)
 
