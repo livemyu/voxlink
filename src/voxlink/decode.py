@@ -11,7 +11,7 @@ from collections.abc import Sequence
 from ._random import Rng
 from .linalg import argmax
 from .llm import LanguageModel
-from .mathx import softmax
+from .mathx import sample_categorical, softmax
 
 __all__ = [
     "StopCriteria",
@@ -82,22 +82,12 @@ def sample_decode(
         if top_k:
             logp = top_k_filter(logp, top_k)
         probs = softmax(logp)
-        token = _sample_from(probs, rng)
+        token = sample_categorical(probs, rng.random())
         if token == eos:
             break
         generated.append(token)
         context.append(token)
     return generated
-
-
-def _sample_from(probs: Sequence[float], rng: Rng) -> int:
-    target = rng.random()
-    acc = 0.0
-    for token, p in enumerate(probs):
-        acc += p
-        if acc >= target:
-            return token
-    return len(probs) - 1
 
 
 def beam_search(
