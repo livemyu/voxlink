@@ -29,6 +29,6 @@ def test_word_bank_covers_expected() -> None:
 def test_train_test_split_is_deterministic() -> None:
     utts = synth_corpus([[w] for w in WORDS])
     a_train, a_test = train_test_split(utts, test_ratio=0.3, seed=5)
-    b_train, b_test = train_test_split(utts, test_ratio=0.3, seed=5)
+    _, b_test = train_test_split(utts, test_ratio=0.3, seed=5)
     assert [u.text for u in a_test] == [u.text for u in b_test]
     assert len(a_train) + len(a_test) == len(utts)
