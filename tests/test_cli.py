@@ -35,8 +35,22 @@ def _make_manifest(tmp_path) -> str:
 def test_cli_train_and_transcribe(tmp_path, capsys) -> None:
     manifest = _make_manifest(tmp_path)
     model_dir = tmp_path / "model"
-    assert cli.main(["train", "--manifest", manifest, "--out", str(model_dir),
-                     "--n-units", "12", "--order", "4"]) == 0
+    assert (
+        cli.main(
+            [
+                "train",
+                "--manifest",
+                manifest,
+                "--out",
+                str(model_dir),
+                "--n-units",
+                "12",
+                "--order",
+                "4",
+            ]
+        )
+        == 0
+    )
     capsys.readouterr()
     # 转写第一条音频
     audio = str(tmp_path / "0.wav")

@@ -63,9 +63,7 @@ def test_save_load_roundtrip(tmp_path) -> None:
     pipe.save(str(tmp_path / "m"))
     restored = SpeechLMPipeline.from_pretrained(str(tmp_path / "m"))
     wave = synth_utterance(["one", "two", "three"]).audio
-    assert restored.transcribe(wave, max_new_tokens=8) == pipe.transcribe(
-        wave, max_new_tokens=8
-    )
+    assert restored.transcribe(wave, max_new_tokens=8) == pipe.transcribe(wave, max_new_tokens=8)
 
 
 def test_transcribe_batch() -> None:
