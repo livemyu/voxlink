@@ -41,6 +41,11 @@ def mel_filterbank(
     hz_points = [mel_to_hz(m) for m in mel_points]
     # 映射到 FFT bin 索引
     bin_points = [math.floor((n_fft + 1) * hz / sample_rate) for hz in hz_points]
+    # 保证 bin 单调递增：当梅尔点在低频过密时，相邻 bin 可能相等，
+    # 强制每个中心至少比前一个大 1，避免出现全零滤波器。
+    for i in range(1, len(bin_points)):
+        if bin_points[i] <= bin_points[i - 1]:
+            bin_points[i] = bin_points[i - 1] + 1
 
     fb: Matrix = [[0.0] * n_bins for _ in range(n_mels)]
     for m in range(1, n_mels + 1):
