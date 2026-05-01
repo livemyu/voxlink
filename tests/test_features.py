@@ -58,7 +58,11 @@ def test_dct_zero_input() -> None:
     assert dct2([0.0, 0.0, 0.0, 0.0], 3) == [0.0, 0.0, 0.0]
 
 
-def test_mel_filterbank_partitions_energy() -> None:
+def test_mel_filterbank_no_all_zero_rows_small_fft() -> None:
+    # 小 n_fft + 多滤波器容易在低频出现全零行，修复后不应发生
+    fb = mel_filterbank(n_mels=40, n_fft=256, sample_rate=16000, fmin=0.0, fmax=8000.0)
+    for row in fb:
+        assert any(w > 0.0 for w in row)
     # 相邻三角滤波器在交叠处权重之和应接近 1（除边缘外）
     fb = mel_filterbank(n_mels=10, n_fft=256, sample_rate=16000, fmin=0.0, fmax=8000.0)
     col_sums = [sum(fb[m][k] for m in range(len(fb))) for k in range(len(fb[0]))]
