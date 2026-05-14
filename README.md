@@ -1,5 +1,11 @@
 # voxlink
 
+[![CI](https://github.com/livemyu/voxlink/actions/workflows/ci.yml/badge.svg)](https://github.com/livemyu/voxlink/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
+[![Checked with mypy](https://img.shields.io/badge/mypy-strict-blue)](https://mypy-lang.org/)
+[![Ruff](https://img.shields.io/badge/lint-ruff-000000)](https://github.com/astral-sh/ruff)
+
 > 把语音编码器 / 离散语音 token 接入大语言模型的离线优先工具包。
 
 `voxlink` 是一个用于 **语音理解、语音问答与语音到文本指令跟随** 的参考实现。
