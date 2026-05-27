@@ -19,6 +19,12 @@ from .types import FeatureMatrix, Utterance, Waveform
 
 __version__ = "0.1.0"
 
+
+def pipeline(directory: str) -> SpeechLMPipeline:
+    """便捷入口：从已保存的目录加载一个 :class:`SpeechLMPipeline`。"""
+    return SpeechLMPipeline.from_pretrained(directory)
+
+
 __all__ = [
     "AudioError",
     "ConfigError",
@@ -33,4 +39,5 @@ __all__ = [
     "VoxlinkError",
     "Waveform",
     "__version__",
+    "pipeline",
 ]
