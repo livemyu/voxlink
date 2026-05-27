@@ -63,6 +63,23 @@ voxlink transcribe audio.wav --model model/    # 转写
 voxlink eval manifest.jsonl --model model/     # 评估 WER/CER
 ```
 
+## 文档
+
+- [架构总览](docs/architecture.md)
+- [使用指南](docs/usage.md)
+- [设计笔记：离散语音单元](docs/design-notes.md)
+- [API 参考](docs/api-reference.md)
+- [评估方法](docs/evaluation.md)
+- [模型与数据格式](docs/formats.md)
+- [常见问题](docs/faq.md)
+
+## 路线图
+
+- [ ] 更真实的语音编码器接口（对接外部特征）
+- [ ] 连续表示 + 投影的第二条接入路径打磨
+- [ ] 重采样加入抗混叠滤波
+- [ ] 可选的神经语言模型后端适配示例
+
 ## 许可证
 
 Apache-2.0，详见 [LICENSE](LICENSE)。
