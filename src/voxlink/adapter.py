@@ -15,7 +15,7 @@ from .exceptions import ModelError
 from .linalg import matvec
 from .types import Matrix, Vector
 
-__all__ = ["LinearProjector", "UnitEmbedding"]
+__all__ = ["LengthAdaptor", "LinearProjector", "UnitEmbedding"]
 
 
 class LinearProjector:
@@ -74,3 +74,26 @@ class UnitEmbedding:
 
     def __call__(self, units: list[int]) -> Matrix:
         return [self.lookup(u) for u in units]
+
+
+class LengthAdaptor:
+    """长度适配：把连续 ``stride`` 帧拼接并投影，缩短语音序列长度。
+
+    语音帧率远高于文本 token 率；把相邻帧拼接后再投影，可以在接入语言模型前把
+    序列缩短到更合适的长度，同时保留局部上下文。
+    """
+
+    def __init__(self, in_dim: int, out_dim: int, *, stride: int = 2, seed: int = 0) -> None:
+        if stride < 1:
+            raise ModelError("stride 必须为正")
+        self.stride = stride
+        self.proj = LinearProjector(in_dim * stride, out_dim, seed=seed)
+
+    def __call__(self, frames: Matrix) -> Matrix:
+        stacked: Matrix = []
+        for i in range(0, len(frames) - self.stride + 1, self.stride):
+            merged: Vector = []
+            for k in range(self.stride):
+                merged.extend(frames[i + k])
+            stacked.append(merged)
+        return self.proj(stacked)
