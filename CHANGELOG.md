@@ -3,6 +3,19 @@
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考
 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
+## [0.2.0] - 未发布
+
+### 新增
+
+- 顶层便捷函数 `voxlink.pipeline(dir)`，一行加载已保存的管线。
+- 可选 numpy 加速后端（`voxlink.backends`），k-means 分配步骤自动向量化。
+- 语音编码器 `MFCCEncoder` 与模态适配器（线性投影 / 单元嵌入）。
+
+### 修复
+
+- 梅尔滤波器组在小 `n_fft` 下可能出现全零行，现强制 bin 单调递增。
+- 合成音频的谐波叠加峰值可能超过 1.0，写 WAV 时会削顶，现统一归一化。
+
 ## [0.1.0] - 未发布
 
 ### 新增
@@ -16,4 +29,5 @@
 - 命令行 `voxlink`：demo / features / train / units / transcribe / qa / eval。
 - 确定性合成语音数据，便于离线演示与测试。
 
+[0.2.0]: https://github.com/livemyu/voxlink/releases/tag/v0.2.0
 [0.1.0]: https://github.com/livemyu/voxlink/releases/tag/v0.1.0
