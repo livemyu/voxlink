@@ -66,6 +66,13 @@ class CorpusMetrics:
     ref_words: int
     ref_chars: int
 
+    def format(self) -> str:
+        """给出一行可读的指标摘要。"""
+        return (
+            f"WER={self.wer:.4f} CER={self.cer:.4f} "
+            f"utts={self.num_utts} words={self.ref_words} chars={self.ref_chars}"
+        )
+
 
 def corpus_metrics(references: Sequence[str], hypotheses: Sequence[str]) -> CorpusMetrics:
     """在语料级聚合 WER/CER（按总编辑数 / 总长度，而非样本平均）。"""
