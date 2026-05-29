@@ -46,3 +46,19 @@ def test_pooling() -> None:
     frames = [[1.0, 2.0], [3.0, 0.0]]
     assert mean_pool(frames) == [2.0, 1.0]
     assert max_pool(frames) == [3.0, 2.0]
+
+
+def test_pooling_empty() -> None:
+    assert mean_pool([]) == []
+    assert max_pool([]) == []
+
+
+def test_mean_pool_matches_manual() -> None:
+    enc = MFCCEncoder(FrontendConfig(n_mfcc=13))
+    fm = enc.encode(_tone())
+    pooled = mean_pool(fm.frames)
+    # 手工按列求均值
+    n = len(fm.frames)
+    for j in range(len(pooled)):
+        manual = sum(row[j] for row in fm.frames) / n
+        assert abs(pooled[j] - manual) < 1e-9
