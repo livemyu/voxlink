@@ -1,6 +1,6 @@
 import pytest
 
-from voxlink.adapter import LinearProjector, UnitEmbedding
+from voxlink.adapter import LengthAdaptor, LinearProjector, UnitEmbedding
 from voxlink.exceptions import ModelError
 
 
@@ -34,3 +34,16 @@ def test_unit_embedding_out_of_range() -> None:
     emb = UnitEmbedding(n_units=4, dim=3)
     with pytest.raises(ModelError):
         emb.lookup(4)
+
+
+def test_length_adaptor_shortens_sequence() -> None:
+    adaptor = LengthAdaptor(in_dim=4, out_dim=8, stride=2, seed=0)
+    frames = [[float(i)] * 4 for i in range(10)]
+    out = adaptor(frames)
+    assert len(out) == 5
+    assert all(len(row) == 8 for row in out)
+
+
+def test_length_adaptor_rejects_bad_stride() -> None:
+    with pytest.raises(ModelError):
+        LengthAdaptor(4, 8, stride=0)
