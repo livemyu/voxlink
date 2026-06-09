@@ -1,5 +1,3 @@
-import math
-
 import pytest
 
 from voxlink.linalg import (
