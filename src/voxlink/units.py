@@ -32,6 +32,10 @@ class Quantizer:
         self.config = config or UnitConfig()
         self._kmeans: KMeans | None = None
 
+    def __repr__(self) -> str:
+        state = "fitted" if self.is_fitted else "unfitted"
+        return f"Quantizer(n_units={self.config.n_units}, {state})"
+
     @property
     def n_units(self) -> int:
         return self.config.n_units
