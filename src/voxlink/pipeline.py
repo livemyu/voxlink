@@ -56,6 +56,16 @@ class SpeechLMPipeline:
         self._prompt: PromptBuilder | None = None
         self._tasks: dict[str, TaskSpec] = {"asr": ASR, "qa": QA, "instruct": INSTRUCT}
 
+    def __repr__(self) -> str:
+        trained = self.lm is not None
+        vsize = len(self.vocab) if self.vocab is not None else 0
+        return f"SpeechLMPipeline(trained={trained}, vocab_size={vsize})"
+
+    @property
+    def is_trained(self) -> bool:
+        """管线是否已完成训练。"""
+        return self.lm is not None and self.vocab is not None
+
     # -- 语音侧 --------------------------------------------------------------
 
     def encode_units(self, wave: Waveform) -> list[int]:
