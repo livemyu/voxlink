@@ -3,6 +3,19 @@
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考
 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
+## [0.3.0] - 未发布
+
+### 新增
+
+- 长度适配器 `LengthAdaptor`：拼帧 + 投影，缩短语音序列长度。
+- `SpeechLMPipeline.is_trained` 属性与可读的 `repr`。
+- 评估结果的一行摘要 `CorpusMetrics.format()`。
+- FFT 微基准脚本 `benchmarks/bench_fft.py`。
+
+### 变更
+
+- 采样逻辑统一到 `mathx.sample_categorical`，解码器与语言模型共用。
+
 ## [0.2.0] - 未发布
 
 ### 新增
@@ -29,5 +42,6 @@
 - 命令行 `voxlink`：demo / features / train / units / transcribe / qa / eval。
 - 确定性合成语音数据，便于离线演示与测试。
 
+[0.3.0]: https://github.com/livemyu/voxlink/releases/tag/v0.3.0
 [0.2.0]: https://github.com/livemyu/voxlink/releases/tag/v0.2.0
 [0.1.0]: https://github.com/livemyu/voxlink/releases/tag/v0.1.0
