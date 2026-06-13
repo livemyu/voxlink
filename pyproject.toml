@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "voxlink"
-version = "0.2.0"
+version = "0.3.0"
 description = "Offline-first toolkit for connecting speech encoders and discrete speech units to language models"
 readme = "README.md"
 requires-python = ">=3.10"
