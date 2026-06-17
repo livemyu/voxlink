@@ -71,3 +71,12 @@ def test_transcribe_batch() -> None:
     waves = [synth_utterance(s).audio for s in SENTENCES]
     outs = pipe.transcribe_batch(waves, max_new_tokens=8)
     assert len(outs) == len(waves)
+
+
+def test_is_trained_flag_and_repr() -> None:
+    pipe = SpeechLMPipeline()
+    assert not pipe.is_trained
+    assert "trained=False" in repr(pipe)
+    trained = _fit_pipe()
+    assert trained.is_trained
+    assert "trained=True" in repr(trained)
