@@ -11,6 +11,14 @@ def test_cli_demo(capsys) -> None:
     assert "WER=" in out
 
 
+def test_cli_info(capsys) -> None:
+    rc = cli.main(["info"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "voxlink" in out
+    assert "python" in out
+
+
 def test_cli_version(capsys) -> None:
     try:
         cli.main(["--version"])
