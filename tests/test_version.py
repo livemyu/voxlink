@@ -9,7 +9,5 @@ def test_version_is_string() -> None:
 
 
 def test_version_matches_pyproject() -> None:
-    text = (Path(__file__).resolve().parent.parent / "pyproject.toml").read_text(
-        encoding="utf-8"
-    )
+    text = (Path(__file__).resolve().parent.parent / "pyproject.toml").read_text(encoding="utf-8")
     assert f'version = "{__version__}"' in text
