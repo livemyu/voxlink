@@ -126,7 +126,15 @@ def _cmd_eval(args: argparse.Namespace) -> int:
         refs.append(str(rec.get("text", "")))
         hyps.append(pipe.transcribe(wave, max_new_tokens=args.max_new_tokens))
     metrics = corpus_metrics(refs, hyps)
-    print(f"WER={metrics.wer:.4f}  CER={metrics.cer:.4f}  utts={metrics.num_utts}")
+    print(metrics.format())
+    return 0
+
+
+def _cmd_info(args: argparse.Namespace) -> int:
+    from .backends import available_backends
+
+    print(f"voxlink {__version__}")
+    print(f"可用后端: {', '.join(available_backends())}")
     return 0
 
 
@@ -141,6 +149,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_demo = sub.add_parser("demo", help="用合成数据端到端演示 ASR")
     p_demo.set_defaults(handler=_cmd_demo)
+
+    p_info = sub.add_parser("info", help="打印版本与可用后端")
+    p_info.set_defaults(handler=_cmd_info)
 
     p_feat = sub.add_parser("features", help="从 WAV 提取特征")
     p_feat.add_argument("audio", help="输入 WAV 路径")
