@@ -80,6 +80,14 @@ voxlink eval manifest.jsonl --model model/     # 评估 WER/CER
 - [ ] 重采样加入抗混叠滤波
 - [ ] 可选的神经语言模型后端适配示例
 
+## 开发
+
+见 [CONTRIBUTING.md](CONTRIBUTING.md)。一条命令跑齐所有检查（等价 CI）：
+
+```bash
+make check   # ruff + mypy + pytest
+```
+
 ## 许可证
 
 Apache-2.0，详见 [LICENSE](LICENSE)。
