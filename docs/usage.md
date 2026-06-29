@@ -74,6 +74,7 @@ print(m.wer, m.cer, m.num_utts)
 | 命令 | 说明 |
 |------|------|
 | `voxlink demo` | 用合成数据端到端演示 |
+| `voxlink info` | 打印版本与可用后端 |
 | `voxlink features audio.wav` | 提取并打印特征信息 |
 | `voxlink train --out model/` | 训练码本 + 词表 + 语言模型 |
 | `voxlink units audio.wav --model model/` | 打印离散语音单元 |
